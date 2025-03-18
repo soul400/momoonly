@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ألعاب المهرة</title>
+  <style>
+    body {
+      background-color: #e0f7fa; /* تركواز فاتح */
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .header {
+      margin-bottom: 20px;
+    }
+    #shuffle-button {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 10px 20px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 20px;
+    }
+    .roulette-section {
+      width: 25%;
+      background-color: #fff3e0; /* بيج */
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 14px; /* تصغير الحجم */
+      text-align: center;
+    }
+    .roulette-section input {
+      width: 80%;
+      margin-bottom: 10px;
+    }
+    .roulette-section button {
+      margin-bottom: 10px;
+    }
+    .score-board {
+      margin-top: 20px;
+    }
+    .score-board div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .score-board span {
+      font-size: 16px;
+    }
+    .score-board button {
+      padding: 5px 10px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* تكبير المربعات واستجابة للشاشات */
+      gap: 10px;
+      width: 60%;
+    }
+    .grid div {
+      width: 100px;
+      height: 100px;
+      background-color: #fff3e0; /* بيج */
+      border: 1px solid #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      font-size: 18px; /* حجم الرقم داخل المربع */
+    }
+    .grid div span {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      color: #000; /* لون الرقم أسود */
+    }
+    .grid img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ألعاب المهرة</h1>
+    <button id="shuffle-button" onclick="shuffleImages()">إعادة توزيع الصور</button>
+  </div>
+  <div class="container">
+    <!-- عجلة الروليت -->
+    <div class="roulette-section">
+      <h3>عجلة الروليت</h3>
+      <input type="text" id="participant-name" placeholder="أضف اسم المشارك">
+      <button onclick="addParticipant()">إضافة مشارك</button>
+      <button onclick="spinRoulette()">بدء</button>
+      <div id="roulette-names"></div>
+
+      <!-- لوحة النقاط -->
+      <div class="score-board" id="score-board">
+        <h3>نقاط المشاركين</h3>
+      </div>
+    </div>
+
+    <!-- شبكة الأرقام -->
+    <div class="grid" id="number-grid"></div>
+  </div>
+
+  <script>
+    // بيانات اللعبة
+    let participants = [];
+    let images = [];
+    let shuffledImages = [];
+    let selectedImages = [];
+    let scores = {};
+    let currentParticipant = '';
+
+    // إضافة مشارك
+    function addParticipant() {
+      const name = document.getElementById('participant-name').value.trim();
+      if (name && participants.length < 20) {
+        participants.push(name);
+        scores[name] = 0; // تهيئة النقاط للمشارك الجديد
+        updateRouletteNames();
+        updateScoreBoard();
+        document.getElementById('participant-name').value = '';
+      }
+    }
+
+    // تحديث أسماء المشاركين في الروليت
+    function updateRouletteNames() {
+      const rouletteNamesDiv = document.getElementById('roulette-names');
+      rouletteNamesDiv.innerHTML = participants.map(name => `<div>${name}</div>`).join('');
+    }
+
+    // دوران الروليت
+    function spinRoulette() {
+      if (participants.length === 0) return;
+      const randomIndex = Math.floor(Math.random() * participants.length);
+      currentParticipant = participants[randomIndex];
+    }
+
+    // إعادة توزيع الصور
+    function shuffleImages() {
+      // تحميل 20 صورة أساسية
+      images = [
+        'image1.png', 'image2.png', 'image3.png', 'image4.png',
+        'image5.png', 'image6.png', 'image7.png', 'image8.png',
+        'image9.png', 'image10.png', 'image11.png', 'image12.png',
+        'image13.png', 'image14.png', 'image15.png', 'image16.png',
+        'image17.png', 'image18.png', 'image19.png', 'image20.png'
+      ];
+
+      // تكرار الصور لتكون 40 صورة
+      shuffledImages = [...images, ...images];
+      shuffledImages.sort(() => Math.random() - 0.5); // خلط الصور
+
+      // تحديث الشبكة
+      const gridDiv = document.getElementById('number-grid');
+      gridDiv.innerHTML = '';
+      shuffledImages.forEach((img, index) => {
+        const div = document.createElement('div');
+        div.dataset.index = index;
+        div.onclick = () => selectImage(div);
+        div.innerHTML = `<span>${index + 1}</span>`; // ترقيم المربعات
+        gridDiv.appendChild(div);
+      });
+    }
+
+    // اختيار صورة
+    function selectImage(div) {
+      const index = div.dataset.index;
+      const imageSrc = shuffledImages[index];
+
+      if (selectedImages.length < 2) {
+        div.style.backgroundImage = `url(images/${imageSrc})`;
+        div.style.backgroundSize = 'cover';
+        selectedImages.push({ index, src: imageSrc });
+
+        if (selectedImages.length === 2) {
+          setTimeout(checkMatch, 1000);
+        }
+      }
+    }
+
+    // التحقق من التطابق
+    function checkMatch() {
+      const [first, second] = selectedImages;
+      if (first.src !== second.src) {
+        document.querySelectorAll('.grid div')[first.index].style.backgroundImage = '';
+        document.querySelectorAll('.grid div')[second.index].style.backgroundImage = '';
+      }
+      selectedImages = [];
+    }
+
+    // تحديث لوحة النقاط
+    function updateScoreBoard() {
+      const scoreBoardDiv = document.getElementById('score-board');
+      scoreBoardDiv.innerHTML = '<h3>نقاط المشاركين</h3>';
+      participants.forEach(name => {
+        const participantDiv = document.createElement('div');
+        participantDiv.innerHTML = `
+          <span>${name}: ${scores[name]}</span>
+          <button onclick="increaseScore('${name}')">+</button>
+          <button onclick="decreaseScore('${name}')">-</button>
+        `;
+        scoreBoardDiv.appendChild(participantDiv);
+      });
+    }
+
+    // زيادة النقاط
+    function increaseScore(name) {
+      scores[name]++;
+      updateScoreBoard();
+    }
+
+    // خصم النقاط
+    function decreaseScore(name) {
+      if (scores[name] > 0) {
+        scores[name]--;
+        updateScoreBoard();
+      }
+    }
+
+    // بدء اللعبة
+    shuffleImages();
+  </script>
+</body>
+</html>
